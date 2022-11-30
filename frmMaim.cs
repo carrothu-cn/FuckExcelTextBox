@@ -20,7 +20,7 @@ namespace 干掉Excel多余文本框
 
         private void frmMaim_Load(object sender, EventArgs e)
         {
-            Output("程序载入完成，请拖入目标文件");        
+            Output("程序载入完成，请拖入文件（支持多文件）");        
         }
         private void Output(string text)
         {
@@ -29,37 +29,44 @@ namespace 干掉Excel多余文本框
 
         private void frmMaim_DragDrop(object sender, DragEventArgs e)
         {
-            string filename = ((System.Array)e.Data.GetData(DataFormats.FileDrop)).GetValue(0).ToString();
-            Output("接收到目标文件："+filename);
-            Workbook workbook = new Workbook();
-            try
-            {
-                workbook.LoadFromFile(filename);
-            }
-            catch
-            {
-                Output("您看看这是Excel文件嘛");
-                return;
-            }
-            
-            Worksheet sheet = workbook.Worksheets[0];
             int i = 0;
-            try
+            while (((System.Array)e.Data.GetData(DataFormats.FileDrop)).GetValue(i) != null)
             {
-                while (true)
+                string filename = ((System.Array)e.Data.GetData(DataFormats.FileDrop)).GetValue(i).ToString();
+                Output("接收到目标文件：" + filename);
+                Workbook workbook = new Workbook();
+                try
                 {
-                    XlsTextBoxShape textboxshape = sheet.TextBoxes[i] as XlsTextBoxShape;
-                    textboxshape.Remove();
-                    i++;
+                    workbook.LoadFromFile(filename);
                 }
+                catch
+                {
+                    Output("您看看"+filename+"这是Excel文件嘛");
+                    return;
+                }
+
+                Worksheet sheet = workbook.Worksheets[0];
+                int j = 0;
+                try
+                {
+                    while (true)
+                    {
+                        XlsTextBoxShape textboxshape = sheet.TextBoxes[j] as XlsTextBoxShape;
+                        textboxshape.Remove();
+                        j++;
+                    }
+                }
+                catch
+                {
+                    Output("已经干掉" + j.ToString() + "个文本框");
+                }
+                string newfilename = System.IO.Path.GetDirectoryName(filename) + @"\" + System.IO.Path.GetFileNameWithoutExtension(filename) + "-去文本框.xlsx";
+                workbook.SaveToFile(newfilename, ExcelVersion.Version2007);
+                Output("已经保存为新文件：" + newfilename);
+                workbook.Dispose();
+                i++;
             }
-            catch 
-            {
-                Output("已经干掉" + i.ToString()+"个文本框");
-            }
-            string newfilename = System.IO.Path.GetDirectoryName(filename)+@"\"+ System.IO.Path.GetFileNameWithoutExtension(filename) + "-去文本框.xlsx";
-            workbook.SaveToFile(newfilename, ExcelVersion.Version2010);
-            Output("已经保存为新文件："+newfilename);
+            Output("任务完毕，共处理"+i.ToString()+"个文件");
         }
 
         private void frmMaim_DragEnter(object sender, DragEventArgs e)
