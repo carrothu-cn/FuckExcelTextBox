@@ -30,7 +30,7 @@ namespace 干掉Excel多余文本框
         private void frmMaim_DragDrop(object sender, DragEventArgs e)
         {
             int i = 0;
-            while (((System.Array)e.Data.GetData(DataFormats.FileDrop)).GetValue(i) != null)
+            while (((System.Array)e.Data.GetData(DataFormats.FileDrop)).Length > i)
             {
                 string filename = ((System.Array)e.Data.GetData(DataFormats.FileDrop)).GetValue(i).ToString();
                 Output("接收到目标文件：" + filename);
@@ -47,23 +47,21 @@ namespace 干掉Excel多余文本框
 
                 Worksheet sheet = workbook.Worksheets[0];
                 int j = 0;
-                try
+                while (sheet.TextBoxes.Count>j)
                 {
-                    while (true)
-                    {
-                        XlsTextBoxShape textboxshape = sheet.TextBoxes[j] as XlsTextBoxShape;
-                        textboxshape.Remove();
-                        j++;
-                    }
+                    XlsTextBoxShape textboxshape = sheet.TextBoxes[j] as XlsTextBoxShape;
+                    textboxshape.Remove();
+                    textboxshape.Dispose();
+                    j++;
                 }
-                catch
-                {
-                    Output("已经干掉" + j.ToString() + "个文本框");
-                }
+                sheet.Dispose();
+                GC.Collect();
+                Output("已经干掉" + j.ToString() + "个文本框");
                 string newfilename = System.IO.Path.GetDirectoryName(filename) + @"\" + System.IO.Path.GetFileNameWithoutExtension(filename) + "-去文本框.xlsx";
                 workbook.SaveToFile(newfilename, ExcelVersion.Version2007);
                 Output("已经保存为新文件：" + newfilename);
                 workbook.Dispose();
+                GC.Collect();
                 i++;
             }
             Output("任务完毕，共处理"+i.ToString()+"个文件");
