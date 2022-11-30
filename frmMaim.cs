@@ -49,9 +49,7 @@ namespace 干掉Excel多余文本框
                 int j = 0;
                 while (sheet.TextBoxes.Count>j)
                 {
-                    XlsTextBoxShape textboxshape = sheet.TextBoxes[j] as XlsTextBoxShape;
-                    textboxshape.Remove();
-                    textboxshape.Dispose();
+                    sheet.TextBoxes[j].Remove();
                     j++;
                 }
                 sheet.Dispose();
